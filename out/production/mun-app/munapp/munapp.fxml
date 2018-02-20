@@ -7,7 +7,16 @@
 <?import java.lang.*?>
 <?import javafx.scene.control.*?>
 
-<TabPane maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" minHeight="600.0" minWidth="800.0" prefHeight="600.0" prefWidth="800.0" tabClosingPolicy="UNAVAILABLE" xmlns="http://javafx.com/javafx/8" xmlns:fx="http://javafx.com/fxml/1">
+<TabPane maxHeight="1.7976931348623157E308"
+         maxWidth="1.7976931348623157E308"
+         minHeight="600.0"
+         minWidth="800.0"
+         prefHeight="600.0"
+         prefWidth="800.0"
+         tabClosingPolicy="UNAVAILABLE"
+         xmlns="http://javafx.com/javafx/8"
+         xmlns:fx="http://javafx.com/fxml/1"
+         fx:controller="munapp.Controller">
   <tabs>
     <Tab closable="false" text="Initial Setup">
          <content>
@@ -28,7 +37,8 @@
                   <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES" />
               </rowConstraints>
                <children>
-                  <Button mnemonicParsing="false" text="Choose Logo" GridPane.columnIndex="1" GridPane.valignment="TOP">
+                  <Button mnemonicParsing="false" text="Choose Logo" GridPane.columnIndex="1"
+                          GridPane.valignment="TOP" fx:id="chooseLogo" onAction="#chooseLogoClick">
                      <GridPane.margin>
                         <Insets left="7.0" />
                      </GridPane.margin>
@@ -166,7 +176,7 @@
                   <Label text="Delegates:" GridPane.rowIndex="8" />
                   <TableView prefHeight="200.0" prefWidth="200.0" GridPane.columnSpan="2" GridPane.rowIndex="9" GridPane.rowSpan="2">
                     <columns>
-                      <TableColumn maxWidth="1.7976931348623157E308" minWidth="80.0" text="Delegate" />
+                      <TableColumn maxWidth="1.7976931348623157E308" minWidth="80.0" />
                       <TableColumn editable="false" maxWidth="100.0" minWidth="100.0" prefWidth="100.0" resizable="false" text="Times Spoken" />
                         <TableColumn maxWidth="60.0" minWidth="60.0" prefWidth="60.0" resizable="false" text="Author" />
                         <TableColumn maxWidth="70.0" minWidth="70.0" prefWidth="70.0" resizable="false" text="Co-author" />

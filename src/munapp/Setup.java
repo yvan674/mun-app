@@ -2,13 +2,13 @@ package munapp;
 
 import javafx.scene.paint.Color;
 
-import java.nio.charset.Charset;
-import java.nio.file.Files;
+import java.io.*;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Properties;
 
 /**
  * Class for project mun-app.
@@ -16,6 +16,8 @@ import java.util.List;
  * Copyright (C) 2018.
  */
 public class Setup {
+    private Properties appConfig = new Properties();
+
     // attributes from the setup page
     private Path logoPath;
     private String conferenceName;
@@ -45,241 +47,80 @@ public class Setup {
     private int totalTimeSec;
     private int timePerSpeakerSec;
 
-    // getter and setters for the attributes
-    public List<Country> getCountriesList() {
-        return countriesList;
+    /**
+     * Loads an XML config for the appConfig and then applies the configuration to all the
+     * variables.
+     *
+     * @param configPath the config path
+     */
+    void loadXMLConfig(Path configPath){
+        // try catch block to load the property from an xml file
+        try {
+            appConfig.loadFromXML(new FileInputStream(configPath.toString()));
+        } catch (FileNotFoundException e) {
+            System.err.println("File not found: " + e.getMessage());
+        } catch (IOException e) {
+            System.err.println("IOException: " + e.getMessage());
+        }
+
+        conferenceName = appConfig.getProperty("conferenceName", "");
+        committeeName = appConfig.getProperty("committeeName", "");
+        countriesList = countryListParser(appConfig.getProperty("countriesList", "[]"));
+        primaryColor = colorParser(appConfig.getProperty("primaryColor", "0, 0, 0, 0"));
+        firstAccent = colorParser(appConfig.getProperty("firstAccent", "0, 0, 0, 0"));
+        secondAccent = colorParser(appConfig.getProperty("secondAccent", "0, 0, 0, 0"));
+        topic = appConfig.getProperty("topic", "");
+        numberOfSpeakers = Integer.parseInt(appConfig.getProperty("numberOfSpeakers", "0"));
+        sessionMode = appConfig.getProperty("sessionMode", "black");
+        resolutionTitle = appConfig.getProperty("resolutionTitle", "");
+        totalTimeSec = Integer.parseInt(appConfig.getProperty("totalTimeSec", "0"));
+        timePerSpeakerSec = Integer.parseInt(appConfig.getProperty("timePerSpeakerSec", "0"));
+        logoPath = Paths.get(appConfig.getProperty("logoPath", ""));
     }
 
-    // adds value to countriesList
-    public void addCountriesList(String country) {
-        countriesList.add(new Country(country, false, false, 0, false, false, false));
-    }
-
-    public Path getConfigPath() {
-        return configPath;
-    }
-
-    public void setConfigPath(Path configPath) {
-        this.configPath = configPath;
-    }
-
-    public Path getLogoPath() {
-        return logoPath;
-    }
-
-    public void setLogoPath(Path logoPath) {
-        this.logoPath = logoPath;
-    }
-
-    public String getConferenceName() {
-        return conferenceName;
-    }
-
-    public void setConferenceName(String conferenceName) {
-        this.conferenceName = conferenceName;
-    }
-
-    public String getCommitteeName() {
-        return committeeName;
-    }
-
-    public void setCommitteeName(String committeeName) {
-        this.committeeName = committeeName;
-    }
-
-    public Color getPrimaryColor() {
-        return primaryColor;
-    }
-
-    public void setPrimaryColor(Color primaryColor) {
-        this.primaryColor = primaryColor;
-    }
-
-    public Color getFirstAccent() {
-        return firstAccent;
-    }
-
-    public void setFirstAccent(Color firstAccent) {
-        this.firstAccent = firstAccent;
-    }
-
-    public Color getSecondAccent() {
-        return secondAccent;
-    }
-
-    public void setSecondAccent(Color secondAccent) {
-        this.secondAccent = secondAccent;
-    }
-
-    public String getTopic() {
-        return topic;
-    }
-
-    public void setTopic(String topic) {
-        this.topic = topic;
-    }
-
-    public int getNumberOfSpeakers() {
-        return numberOfSpeakers;
-    }
-
-    public void setNumberOfSpeakers(int numberOfSpeakers) {
-        this.numberOfSpeakers = numberOfSpeakers;
-    }
-
-    public String getSessionMode() {
-        return sessionMode;
-    }
-
-    public void setSessionMode(String sessionMode) {
-        this.sessionMode = sessionMode;
-    }
-
-    public Country getCurrentSpeaker() {
-        return currentSpeaker;
-    }
-
-    public void setCurrentSpeaker(Country currentSpeaker) {
-        this.currentSpeaker = currentSpeaker;
-    }
-
-    public List<String> getSpeakersList() {
-        return speakersList;
-    }
-
-    public void setSpeakersList(List<String> speakersList) {
-        this.speakersList = speakersList;
-    }
-
-    // add someone to the speakers list
-    public void addSpeakersList(String countryName) {
-        this.speakersList.add(countryName);
-    }
-
-    public String getResolutionTitle() {
-        return resolutionTitle;
-    }
-
-    public void setResolutionTitle(String resolutionTitle) {
-        this.resolutionTitle = resolutionTitle;
-    }
-
-    public String getTotalTimeStr() {
-        return totalTimeStr;
-    }
-
-    public void setTotalTimeStr(String totalTimeStr) {
-        this.totalTimeStr = totalTimeStr;
-    }
-
-    public String getTimePerSpeakerStr() {
-        return timePerSpeakerStr;
-    }
-
-    public void setTimePerSpeakerStr(String timePerSpeakerStr) {
-        this.timePerSpeakerStr = timePerSpeakerStr;
-    }
-
-    public int getTotalTimeSec() {
-        return totalTimeSec;
-    }
-
-    public void setTotalTimeSec(int totalTimeSec) {
-        this.totalTimeSec = totalTimeSec;
-    }
-
-    public int getTimePerSpeakerSec() {
-        return timePerSpeakerSec;
-    }
-
-    public void setTimePerSpeakerSec(int timePerSpeakerSec) {
-        this.timePerSpeakerSec = timePerSpeakerSec;
-    }
-
-    // this functions saves the configuration file to the path filePath
-    public void saveConfigFile(Path filePath) {
-        /* This function saves all the variables currently being used to a configuration file.
-           This allows the program to save previous sessions for ease of use.
-         */
-        // the lines to write
-        List<String> lines = new ArrayList<>();
-
-        // the following add creates a list of stuff to add to the config file
-        lines.add("<MUNConfigFile>");
-        lines.add("    logoPath=" + logoPath);
-        lines.add("    conferenceName=" + conferenceName);
-        lines.add("    committeeName=" + committeeName);
-        lines.add("    countriesList=" + countriesList.toString());
-        lines.add("    primaryColor=" + primaryColor.getRed() + ", "
-                + primaryColor.getGreen() + ", " + primaryColor.getBlue()
-                + ", " + primaryColor.getOpacity());
-        lines.add("    firstAccent=" + firstAccent.getRed() + ", "
-                + firstAccent.getGreen() + ", " + firstAccent.getBlue()
-                + ", " + firstAccent.getOpacity());
-        lines.add("    secondAccent=" + secondAccent.getRed() + ", "
+    /**
+     * Save the current variables/configurations as an XML file
+     *
+     * @param configPath the directory path to save the XML file in
+     */
+    public void saveXMLConfig(Path configPath){
+        appConfig.setProperty("conferenceName", conferenceName);
+        appConfig.setProperty("committeeName", committeeName);
+        appConfig.setProperty("countriesList", countriesList.toString());
+        appConfig.setProperty("primaryColor", primaryColor.getRed() + ", "
+                + primaryColor.getGreen() + ", " + primaryColor.getBlue() + ", "
+                + primaryColor.getOpacity());
+        appConfig.setProperty("firstAccent", firstAccent.getRed() + ", "
+                + firstAccent.getGreen() + ", " + firstAccent.getBlue() + ", "
+                + firstAccent.getOpacity());
+        appConfig.setProperty("secondAccent", secondAccent.getRed() + ", "
                 + secondAccent.getGreen() + ", " + secondAccent.getBlue() + ", "
                 + secondAccent.getOpacity());
-        lines.add("    topic=" + topic);
-        lines.add("    numberOfSpeakers=" + numberOfSpeakers);
-        lines.add("    sessionMode=" + sessionMode);
-        lines.add("    currentSpeaker=" + currentSpeaker.getCountryName());
-        lines.add("    speakersList=" + speakersList.toString());
-        lines.add("    resolutionTitle=" + resolutionTitle);
-        lines.add("    totalTime=" + totalTimeSec);
-        lines.add("    timePerSpeaker=" + timePerSpeakerSec);
-        lines.add("</MUNConfigFile>");
+        appConfig.setProperty("topic", topic);
+        appConfig.setProperty("numberOfSpeakers", Integer.toString(numberOfSpeakers));
+        appConfig.setProperty("sessionMode", sessionMode);
+        appConfig.setProperty("currentSpeaker", currentSpeaker.getCountryName());
+        appConfig.setProperty("speakersList", speakersList.toString());
+        appConfig.setProperty("resolutionTitle", resolutionTitle);
+        appConfig.setProperty("totalTimeSec", Integer.toString(totalTimeSec));
+        appConfig.setProperty("timePerSpeakerSec", Integer.toString(timePerSpeakerSec));
+        appConfig.setProperty("logoPath", logoPath.toString());
 
-        // write it to the file defined in the argument file Path
         try {
-            Files.write(filePath, lines, Charset.forName("UTF-8"));
-        } catch (java.io.IOException e) {
+            appConfig.storeToXML(new FileOutputStream("C:/Users/Yvan/Desktop/config.xml"),
+                    "Configuration to xml file");
+        } catch (IOException e) {
             System.err.println("IOException: " + e.getMessage());
         }
     }
 
-    public void loadConfigFile(Path filePath) {
-        /* This function loads and parses saved configuration files and loads the configuration
-           into the current program session.
-         */
-        // variables. This is the temporary config list
-        List<String> config = new ArrayList<>();
-
-        // reads it into the config variable
-        try {
-            config = Files.readAllLines(filePath);
-        } catch (java.io.IOException e) {
-            System.err.println("IOException: " + e.getMessage());
-        }
-
-        // removes the part before the = sign
-        for(int i = 0; i <= 14; i++) {
-            config.set(i, config.get(i).replaceFirst(".*=",""));
-        }
-
-        // assigns variables based on the config file
-        this.logoPath = Paths.get(config.get(1));
-        this.conferenceName = config.get(2);
-        this.committeeName = config.get(3);
-        this.countriesList = countryListParser(config.get(4));
-        this.primaryColor = colorParser(config.get(5));
-        this.firstAccent = colorParser(config.get(6));
-        this.secondAccent = colorParser(config.get(7));
-        this.topic = config.get(8);
-        this.numberOfSpeakers = Integer.parseInt(config.get(9));
-        this.sessionMode = config.get(10);
-        this.currentSpeaker = countryParser(config.get(11));
-        this.speakersList = stringListParser(config.get(12));
-        this.resolutionTitle = config.get(13);
-        this.totalTimeSec = Integer.parseInt(config.get(14));
-        this.timePerSpeakerSec = Integer.parseInt(config.get(15));
-
-        // string values for the the time variables
-        this.totalTimeStr = timeParser(totalTimeSec);
-        this.timePerSpeakerStr = timeParser(timePerSpeakerSec);
-    }
-
+    /**
+     * Parses the string object in properties and turns it into a color object
+     *
+     * @param colorString The color in the form of a string
+     * @return The color in the form of a color object
+     */
     private static Color colorParser(String colorString) {
-        /* turns the color which is in string form back into a color object */
         // first splits the string into a list of strings at ", "
         List<String> args = Arrays.asList(colorString.split(", "));
 
@@ -288,49 +129,87 @@ public class Setup {
                 Double.parseDouble(args.get(2)), Double.parseDouble(args.get(3)));
     }
 
+    /**
+     * Turns a list of string in string form back into a list object
+     *
+     * @param listString The list in string form
+     * @return The list as a List of String objects
+     */
     private static List<String> stringListParser(String listString) {
-        /* turns a list of string in string form back into a list object */
         // define variables and split the list
         // takes the substring without the first and last brackets, then splits it at ", ",
         // turns it into an ArrayList, and then returns it
-        return new ArrayList<>(Arrays.asList(listString.substring(1, listString
-                .length() - 1).split(", ")));
+        try {
+            return new ArrayList<>(Arrays.asList(listString.substring(1, listString
+                    .length() - 1).split(", ")));
+        } catch (IndexOutOfBoundsException e) {
+            System.err.println("Index out of bounds: " + e.getMessage());
+            return null;
+        }
     }
 
+    /**
+     * turns a country in string form back into a Country object
+     *
+     * @param countryString The country in string form
+     * @return A Country object from the list
+     */
     private static Country countryParser(String countryString) {
-        /* turns a country in string form back into a Country object */
         // first splits the string into a list of strings at ", "
         List<String> args = Arrays.asList(countryString.split(", "));
         // and then returns it as a Country object with the list args as its arguments
-        return new Country(args.get(0), Boolean.parseBoolean(args.get(1)), Boolean.parseBoolean
-                (args.get(2)), Integer.parseInt(args.get(3)), Boolean.parseBoolean(args.get(4)),
-                Boolean.parseBoolean(args.get(5)), Boolean.parseBoolean(args.get(6)));
+        try {
+            return new Country(args.get(0), Boolean.parseBoolean(args.get(1)), Boolean.parseBoolean
+                    (args.get(2)), Integer.parseInt(args.get(3)), Boolean.parseBoolean(args.get(4)),
+                    Boolean.parseBoolean(args.get(5)), Boolean.parseBoolean(args.get(6)));
+        } catch (IndexOutOfBoundsException e) {
+            System.err.println("Index out of bounds: " + e.getMessage());
+            return null;
+        } catch (NumberFormatException e) {
+            System.err.println("Number format exception: " + e.getMessage());
+            return null;
+        }
     }
 
+    /**
+     * turns the list of countries which is in string form back into a list of Country
+     * objects
+     *
+     * @param countryListString The list of countries as a string object
+     * @return The list as a list of Country objects
+     */
     private static List<Country> countryListParser(String countryListString) {
-        /* turns the list of countries which is in string form back into a list of Country
-        objects
-         */
         // defines the returned list as a variable
         List<Country> returnList = new ArrayList<>();
 
         // takes the substring without the first 2 brackets and the last 2 brackets, then splits
         // it at "], [" and puts it into a list of strings
-        List<String> countryList = Arrays.asList(countryListString.substring(2,
-                                                 countryListString.length() - 2)
-                                                 .split("\\], \\["));
+        try {
+            List<String> countryList = Arrays.asList(countryListString.substring(2,
+                    countryListString.length() - 2)
+                    .split("\\], \\["));
 
-        for(String i : countryList) {
-            returnList.add(countryParser(i));
+            for (String i : countryList) {
+                returnList.add(countryParser(i));
+            }
+            return returnList;
+        } catch (IndexOutOfBoundsException e) {
+            System.err.println("Index out of bounds: " + e.getMessage());
+            return null;
         }
-        return returnList;
     }
 
     private static String timeParser(int time) {
         // turns the time in seconds to a string in human-readable format
-        String minutes = Integer.toString(time / 60);
-        String seconds = Integer.toString(time % 60);
-
+        String minutes;
+        String seconds;
+        try {
+            minutes = Integer.toString(time / 60);
+            seconds = Integer.toString(time % 60);
+        } catch (NumberFormatException e) {
+            System.err.println("Number format exception: " + e.getMessage());
+            return null;
+        }
         // returns the string
         return minutes + ":" + seconds;
     }
