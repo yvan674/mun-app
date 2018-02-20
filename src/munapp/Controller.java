@@ -3,10 +3,7 @@ package munapp;
 import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
 import javafx.fxml.FXML;
-import javafx.scene.control.Button;
-import javafx.scene.control.Menu;
-import javafx.scene.control.MenuBar;
-import javafx.scene.control.MenuItem;
+import javafx.scene.control.*;
 import javafx.scene.paint.Color;
 import javafx.stage.FileChooser;
 
@@ -19,10 +16,17 @@ import java.util.List;
 import java.util.Properties;
 
 public class Controller {
-
-
+    // the choose logo button
     @FXML
     Button chooseLogo;
+
+    // the color pickers
+    @FXML
+    ColorPicker primaryColorPicker;
+    @FXML
+    ColorPicker firstColorPicker;
+    @FXML
+    ColorPicker secondColorPicker;
 
     @FXML
     protected void chooseLogoClick(ActionEvent event) throws IOException {
@@ -40,5 +44,20 @@ public class Controller {
                 new FileChooser.ExtensionFilter("BMP", "*.bmp", "*.BMP"));
 
         File file = fileChooser.showOpenDialog(chooseLogo.getScene().getWindow());
+    }
+
+    @FXML
+    protected void setPrimaryColor(ActionEvent event) throws IOException {
+        Main.setup.setPrimaryColor(primaryColorPicker.getValue());
+    }
+
+    @FXML
+    protected void setFirstColor(ActionEvent event) throws IOException {
+        Main.setup.setFirstAccent(firstColorPicker.getValue());
+    }
+
+    @FXML
+    protected void setSecondColor(ActionEvent event) throws IOException {
+        Main.setup.setSecondAccent(secondColorPicker.getValue());
     }
 }

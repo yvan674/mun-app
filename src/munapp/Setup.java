@@ -19,20 +19,20 @@ public class Setup {
     private Properties appConfig = new Properties();
 
     // attributes from the setup page
-    private Path logoPath;
+    private File logoFile;
     private String conferenceName;
     private String committeeName;
-    private List<Country> countriesList = new ArrayList<>();
+    private List<Country> countriesList;
     private Color primaryColor;
     private Color firstAccent;
     private Color secondAccent;
-    private Path configPath;
 
     // attributes from the session page
     private String topic;
     private int numberOfSpeakers;
-    private String sessionMode;
     private Country currentSpeaker;
+    // options for session mode are off, black, logo, roleCall, voting, unmod, session, moderated
+    private String sessionMode;
 
     // speakers list works by being a list of strings which can be used to refer back to the
     // original countries list. In this way, only one master countries list is ever used and
@@ -48,15 +48,94 @@ public class Setup {
     private int timePerSpeakerSec;
 
     /**
+     * Constructor for the Setup class. Creates a setup object with basically no contents, but
+     * enough so that it can be read by Controller.java and create an empty app window.
+     */
+    public Setup(){
+        logoFile = null;
+        conferenceName = "";
+        committeeName = "";
+        countriesList = new ArrayList<>();
+        primaryColor = new Color(1, 1, 1, 1);
+        firstAccent = new Color(1, 1, 1, 1);
+        secondAccent = new Color(1, 1, 1, 1);
+        topic = "";
+        numberOfSpeakers = 0;
+        currentSpeaker = null;
+        sessionMode = "off";
+        speakersList = new ArrayList<>();
+        resolutionTitle = "";
+        totalTimeSec = 0;
+        timePerSpeakerSec = 0;
+        totalTimeStr = "00:00";
+        timePerSpeakerStr = "00:00";
+
+    }
+
+    /**
+     * Gets primary color.
+     *
+     * @return the primary color
+     */
+    public Color getPrimaryColor() {
+        return primaryColor;
+    }
+
+    /**
+     * Sets primary color.
+     *
+     * @param primaryColor the primary color
+     */
+    public void setPrimaryColor(Color primaryColor) {
+        this.primaryColor = primaryColor;
+    }
+
+    /**
+     * Gets first accent.
+     *
+     * @return the first accent
+     */
+    public Color getFirstAccent() {
+        return firstAccent;
+    }
+
+    /**
+     * Sets first accent.
+     *
+     * @param firstAccent the first accent
+     */
+    public void setFirstAccent(Color firstAccent) {
+        this.firstAccent = firstAccent;
+    }
+
+    /**
+     * Gets second accent.
+     *
+     * @return the second accent
+     */
+    public Color getSecondAccent() {
+        return secondAccent;
+    }
+
+    /**
+     * Sets second accent.
+     *
+     * @param secondAccent the second accent
+     */
+    public void setSecondAccent(Color secondAccent) {
+        this.secondAccent = secondAccent;
+    }
+
+    /**
      * Loads an XML config for the appConfig and then applies the configuration to all the
      * variables.
      *
-     * @param configPath the config path
+     * @param configFile The configuration file
      */
-    void loadXMLConfig(Path configPath){
+    void loadXMLConfig(File configFile){
         // try catch block to load the property from an xml file
         try {
-            appConfig.loadFromXML(new FileInputStream(configPath.toString()));
+            appConfig.loadFromXML(new FileInputStream(configFile));
         } catch (FileNotFoundException e) {
             System.err.println("File not found: " + e.getMessage());
         } catch (IOException e) {
@@ -75,15 +154,15 @@ public class Setup {
         resolutionTitle = appConfig.getProperty("resolutionTitle", "");
         totalTimeSec = Integer.parseInt(appConfig.getProperty("totalTimeSec", "0"));
         timePerSpeakerSec = Integer.parseInt(appConfig.getProperty("timePerSpeakerSec", "0"));
-        logoPath = Paths.get(appConfig.getProperty("logoPath", ""));
+        //logoFile = get(appConfig.getProperty("logoFile", ""));
     }
 
     /**
      * Save the current variables/configurations as an XML file
      *
-     * @param configPath the directory path to save the XML file in
+     * @param configFile the directory path to save the XML file in
      */
-    public void saveXMLConfig(Path configPath){
+    void saveXMLConfig(File configFile){
         appConfig.setProperty("conferenceName", conferenceName);
         appConfig.setProperty("committeeName", committeeName);
         appConfig.setProperty("countriesList", countriesList.toString());
@@ -99,16 +178,22 @@ public class Setup {
         appConfig.setProperty("topic", topic);
         appConfig.setProperty("numberOfSpeakers", Integer.toString(numberOfSpeakers));
         appConfig.setProperty("sessionMode", sessionMode);
-        appConfig.setProperty("currentSpeaker", currentSpeaker.getCountryName());
+        if(currentSpeaker != null) {
+            appConfig.setProperty("currentSpeaker", currentSpeaker.getCountryName());
+        } else {
+            appConfig.setProperty("currentSpeaker", "");
+        }
         appConfig.setProperty("speakersList", speakersList.toString());
         appConfig.setProperty("resolutionTitle", resolutionTitle);
         appConfig.setProperty("totalTimeSec", Integer.toString(totalTimeSec));
         appConfig.setProperty("timePerSpeakerSec", Integer.toString(timePerSpeakerSec));
-        appConfig.setProperty("logoPath", logoPath.toString());
-
+        if(logoFile != null) {
+            appConfig.setProperty("logoFile", logoFile.toString());
+        } else {
+            appConfig.setProperty("logoFile", "");
+        }
         try {
-            appConfig.storeToXML(new FileOutputStream("C:/Users/Yvan/Desktop/config.xml"),
-                    "Configuration to xml file");
+            appConfig.storeToXML(new FileOutputStream(configFile), "Configuration to xml file");
         } catch (IOException e) {
             System.err.println("IOException: " + e.getMessage());
         }
@@ -155,19 +240,24 @@ public class Setup {
      * @return A Country object from the list
      */
     private static Country countryParser(String countryString) {
-        // first splits the string into a list of strings at ", "
-        List<String> args = Arrays.asList(countryString.split(", "));
-        // and then returns it as a Country object with the list args as its arguments
-        try {
-            return new Country(args.get(0), Boolean.parseBoolean(args.get(1)), Boolean.parseBoolean
-                    (args.get(2)), Integer.parseInt(args.get(3)), Boolean.parseBoolean(args.get(4)),
-                    Boolean.parseBoolean(args.get(5)), Boolean.parseBoolean(args.get(6)));
-        } catch (IndexOutOfBoundsException e) {
-            System.err.println("Index out of bounds: " + e.getMessage());
+        // minimum of 5 commas unless the country is null
+        if(countryString.length() < 6) {
             return null;
-        } catch (NumberFormatException e) {
-            System.err.println("Number format exception: " + e.getMessage());
-            return null;
+        } else {
+            // first splits the string into a list of strings at ", "
+            List<String> args = Arrays.asList(countryString.split(", "));
+            // and then returns it as a Country object with the list args as its arguments
+            try {
+                return new Country(args.get(0), Boolean.parseBoolean(args.get(1)), Boolean.parseBoolean
+                        (args.get(2)), Integer.parseInt(args.get(3)), Boolean.parseBoolean(args.get(4)),
+                        Boolean.parseBoolean(args.get(5)), Boolean.parseBoolean(args.get(6)));
+            } catch (IndexOutOfBoundsException e) {
+                System.err.println("Index out of bounds: " + e.getMessage());
+                return null;
+            } catch (NumberFormatException e) {
+                System.err.println("Number format exception: " + e.getMessage());
+                return null;
+            }
         }
     }
 
@@ -182,29 +272,42 @@ public class Setup {
         // defines the returned list as a variable
         List<Country> returnList = new ArrayList<>();
 
-        // takes the substring without the first 2 brackets and the last 2 brackets, then splits
-        // it at "], [" and puts it into a list of strings
-        try {
-            List<String> countryList = Arrays.asList(countryListString.substring(2,
-                    countryListString.length() - 2)
-                    .split("\\], \\["));
-
-            for (String i : countryList) {
-                returnList.add(countryParser(i));
-            }
+        // if country list is empty, return an empty array list
+        if(countryListString.length() == 2) {
             return returnList;
-        } catch (IndexOutOfBoundsException e) {
-            System.err.println("Index out of bounds: " + e.getMessage());
-            return null;
+        } else {
+            // takes the substring without the first 2 brackets and the last 2 brackets, then splits
+            // it at "], [" and puts it into a list of strings
+            try {
+                List<String> countryList = Arrays.asList(countryListString.substring(2,
+                        countryListString.length() - 2)
+                        .split("\\], \\["));
+
+                for (String i : countryList) {
+                    returnList.add(countryParser(i));
+                }
+                return returnList;
+            } catch (IndexOutOfBoundsException e) {
+                System.err.println("Index out of bounds: " + e.getMessage());
+                return null;
+            }
         }
     }
 
+    /**
+     * Turns the time in seconds to a string in human-readable format
+     *
+     * @param time The time in seconds as an int
+     * @return The time in a human readable string
+     */
     private static String timeParser(int time) {
-        // turns the time in seconds to a string in human-readable format
         String minutes;
         String seconds;
+
         try {
+            // divides the string by 60 to get minutes
             minutes = Integer.toString(time / 60);
+            // gets the time modulo 60 for the seconds
             seconds = Integer.toString(time % 60);
         } catch (NumberFormatException e) {
             System.err.println("Number format exception: " + e.getMessage());
@@ -213,4 +316,6 @@ public class Setup {
         // returns the string
         return minutes + ":" + seconds;
     }
+
+
 }
