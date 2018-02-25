@@ -116,13 +116,13 @@ public class Main extends Application {
         // enable the menus
         menuBar.getMenus().addAll(menuFile, menuHelp);
 
-
+        // use the proper OS menuBar type
         final String OS = System.getProperty("os.name");
         if (OS != null && OS.startsWith("Mac")) {
             menuBar.useSystemMenuBarProperty().set(true);
-        } else if (OS != null && OS.startsWith("Windows")) {
-            root.setTop(menuBar);
         }
+        // set the menuBar
+        root.setTop(menuBar);
 
         // show the stage
         primaryStage.show();
