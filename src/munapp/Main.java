@@ -61,15 +61,16 @@ public class Main extends Application {
         saveSession.setOnAction(new EventHandler<ActionEvent>() {
             @Override
             public void handle(ActionEvent event) {
-                // defines the actions that occur when the Open Session menu is clicked. In this
+                // defines the actions that occur when the Save Session menu is clicked. In this
                 // case, a file chooser opens up with default directory being the home directory
                 final FileChooser fileChooser = new FileChooser();
 
-                /*
+
                 // configure the FileChooser
                 fileChooser.setTitle("Save Session");
                 fileChooser.setInitialDirectory(new File(System.getProperty("user.home")));
-                */
+                fileChooser.setInitialFileName("Untitled Session");
+                
                 // set extension filter
                 fileChooser.getExtensionFilters().addAll(
                         new FileChooser.ExtensionFilter("XML", "*.xml"),

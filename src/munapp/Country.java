@@ -11,13 +11,13 @@ import javafx.beans.property.SimpleStringProperty;
  */
 public class Country {
     // the attributes of class Country
-    private final SimpleStringProperty countryName;
-    private SimpleBooleanProperty present;
-    private SimpleBooleanProperty voting;
-    private SimpleIntegerProperty timesSpoken;
-    private SimpleBooleanProperty author;
-    private SimpleBooleanProperty coauthor;
-    private SimpleBooleanProperty sponsor;
+    private SimpleStringProperty countryName = new SimpleStringProperty("");
+    private SimpleBooleanProperty present = new SimpleBooleanProperty(false);
+    private SimpleBooleanProperty voting = new SimpleBooleanProperty(false);;
+    private SimpleIntegerProperty timesSpoken = new SimpleIntegerProperty(0);
+    private SimpleBooleanProperty author = new SimpleBooleanProperty(false);;
+    private SimpleBooleanProperty coauthor = new SimpleBooleanProperty(false);;
+    private SimpleBooleanProperty sponsor = new SimpleBooleanProperty(false);;
 
     // the actual constructor
     public Country (String countryName, boolean present, boolean voting, int timesSpoken,

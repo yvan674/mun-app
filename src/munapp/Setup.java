@@ -127,6 +127,78 @@ public class Setup {
     }
 
     /**
+     * Gets logo file.
+     *
+     * @return the logo file
+     */
+    public File getLogoFile() {
+        return logoFile;
+    }
+
+    /**
+     * Sets logo file.
+     *
+     * @param logoFile the logo file
+     */
+    public void setLogoFile(File logoFile) {
+        this.logoFile = logoFile;
+    }
+
+    /**
+     * Gets conference name.
+     *
+     * @return the conference name
+     */
+    public String getConferenceName() {
+        return conferenceName;
+    }
+
+    /**
+     * Sets conference name.
+     *
+     * @param conferenceName the conference name
+     */
+    public void setConferenceName(String conferenceName) {
+        this.conferenceName = conferenceName;
+    }
+
+    /**
+     * Gets committee name.
+     *
+     * @return the committee name
+     */
+    public String getCommitteeName() {
+        return committeeName;
+    }
+
+    /**
+     * Sets committee name.
+     *
+     * @param committeeName the committee name
+     */
+    public void setCommitteeName(String committeeName) {
+        this.committeeName = committeeName;
+    }
+
+    /**
+     * Gets countries list.
+     *
+     * @return the countries list
+     */
+    public List<Country> getCountriesList() {
+        return countriesList;
+    }
+
+    /**
+     * Sets countries list.
+     *
+     * @param countriesList the countries list
+     */
+    public void setCountriesList(List<Country> countriesList) {
+        this.countriesList = countriesList;
+    }
+
+    /**
      * Loads an XML config for the appConfig and then applies the configuration to all the
      * variables.
      *
